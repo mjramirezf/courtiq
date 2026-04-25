@@ -13,7 +13,7 @@ function getClient(): Anthropic {
 }
 
 const MODEL = 'claude-sonnet-4-6';
-const MAX_TOKENS = 4096;
+const MAX_TOKENS = 16000;
 
 export interface UserProfile {
   sport: string;
