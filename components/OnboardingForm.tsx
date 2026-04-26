@@ -24,7 +24,7 @@ const GOALS = [
   { id: 'competition', label: 'Compete', emoji: '🏆', desc: 'Work toward competitive play' },
 ];
 
-const STEP_LABELS = ['Sport', 'Level', 'Schedule', 'Partner', 'Goal'];
+const STEP_LABELS = ['Sport', 'Level', 'Schedule', 'Partner', 'Goal', 'About'];
 
 export default function OnboardingForm({ sportIds }: { sportIds: Record<string, string> }) {
   const router = useRouter();
@@ -259,18 +259,43 @@ export default function OnboardingForm({ sportIds }: { sportIds: Record<string, 
               </button>
             ))}
           </div>
+          <div className="flex justify-between items-center">
+            <button onClick={back} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">← Back</button>
+            <button onClick={next} disabled={!form.goal}
+              className="bg-green-500 hover:bg-green-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-lg px-10 py-4 rounded-2xl transition-all">
+              Continue →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 6 — Age */}
+      {step === 6 && (
+        <div>
+          <h2 className="text-3xl font-black text-white mb-1">How old are you?</h2>
+          <p className="text-gray-400 mb-10">We'll tailor the intensity and recovery time to your age.</p>
+          <div className="flex flex-col items-center gap-6">
+            <div className="text-8xl font-black text-green-400">{form.age || 25}</div>
+            <p className="text-gray-400 font-medium">years old</p>
+            <input type="range" min={12} max={70} value={form.age || 25}
+              onChange={(e) => setForm({ ...form, age: parseInt(e.target.value) })}
+              className="w-full max-w-sm accent-green-500 h-2" />
+            <div className="flex justify-between w-full max-w-sm text-sm text-gray-600 font-medium">
+              <span>12</span><span>25</span><span>40</span><span>55</span><span>70</span>
+            </div>
+          </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl p-4 mb-4 text-sm flex items-center justify-between">
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-xl p-4 mt-8 text-sm flex items-center justify-between">
               <span>{error.replace('Error: ', '')}</span>
               <button onClick={handleSubmit} className="ml-3 underline font-semibold flex-shrink-0">Try again</button>
             </div>
           )}
 
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center mt-10">
             <button onClick={back} className="text-sm text-gray-500 hover:text-gray-300 transition-colors">← Back</button>
-            <button onClick={handleSubmit} disabled={!form.goal}
-              className="bg-green-500 hover:bg-green-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black text-lg px-10 py-4 rounded-2xl transition-all hover:shadow-lg hover:shadow-green-500/20">
+            <button onClick={handleSubmit}
+              className="bg-green-500 hover:bg-green-400 text-white font-black text-lg px-10 py-4 rounded-2xl transition-all hover:shadow-lg hover:shadow-green-500/20">
               Build My Plan 🚀
             </button>
           </div>
