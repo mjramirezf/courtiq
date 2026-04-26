@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import OnboardingForm from '@/components/OnboardingForm';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,15 +14,13 @@ export default async function OnboardingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-green-50 via-white to-emerald-50">
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-black text-gray-900">
-            Court<span className="text-green-500">IQ</span>
-          </h1>
-          <p className="text-gray-500 mt-1">Let&apos;s build your personal training plan</p>
-        </div>
-        <div className="bg-white rounded-3xl shadow-lg border border-gray-100 p-8">
+    <main className="min-h-screen bg-gray-950 text-white flex flex-col">
+      <nav className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <Link href="/" className="text-2xl font-black">Court<span className="text-green-400">IQ</span></Link>
+        <span className="text-sm text-gray-500">Your personal AI coach</span>
+      </nav>
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-xl">
           <OnboardingForm sportIds={sportIds} />
         </div>
       </div>
