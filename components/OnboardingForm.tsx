@@ -44,27 +44,14 @@ export default function OnboardingForm({ sportIds }: { sportIds: Record<string, 
       const sportId = sportIds[form.sport?.toLowerCase() || ''];
       const payload = { ...form, sport_id: sportId, email: form.email || `guest_${Date.now()}@courtiq.app` };
 
-      let res = await fetch('/api/generate-plan', {
+      const res = await fetch('/api/generate-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        // retry once
-        res = await fetch('/api/generate-plan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-      }
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Failed to generate plan');
-      }
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to generate plan');
       router.push(`/dashboard?plan_id=${data.plan_id}&user_id=${data.user_id}`);
     } catch (e) {
       setError(String(e));

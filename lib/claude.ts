@@ -13,7 +13,7 @@ function getClient(): Anthropic {
 }
 
 const MODEL = 'claude-sonnet-4-6';
-const MAX_TOKENS = 16000;
+const MAX_TOKENS = 32000;
 
 export interface UserProfile {
   sport: string;
@@ -63,13 +63,14 @@ export interface SessionBrief {
 }
 
 async function callClaude(systemPrompt: string, userPrompt: string): Promise<string> {
-  const message = await getClient().messages.create({
+  const stream = getClient().messages.stream({
     model: MODEL,
     max_tokens: MAX_TOKENS,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }],
   });
 
+  const message = await stream.finalMessage();
   const content = message.content[0];
   if (content.type !== 'text') {
     throw new Error('Unexpected response type from Claude');
@@ -135,7 +136,8 @@ Rules:
 - Phase distribution: weeks 1–3 = fundamentals, weeks 4–6 = skill_building, weeks 7–8 = match_prep
 - If has_partner is false, make all sessions solo-friendly (no partner required)
 - Drills must have video_search_query — use specific, searchable terms like "padel forehand drill beginner slow motion"
-- Make milestones concrete and checkable, e.g. "Land 7 out of 10 serves in bounds" not "improve your serve"`;
+- Make milestones concrete and checkable, e.g. "Land 7 out of 10 serves in bounds" not "improve your serve"
+- KEEP RESPONSES CONCISE: max 2 drills per session, descriptions max 1 sentence, warm_up and cool_down max 1 sentence each, coach_note max 1 sentence`;
 
   let raw = await callClaude(systemPrompt, userPrompt);
   const plan = parseJSON<Plan>(raw, 'generatePlan');

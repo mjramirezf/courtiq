@@ -5,18 +5,20 @@ import Link from 'next/link';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  searchParams: { plan_id?: string; user_id?: string };
+  searchParams: Promise<{ plan_id?: string; user_id?: string }>;
 }
 
 export default async function DashboardPage({ searchParams }: Props) {
-  const { plan_id, user_id } = searchParams;
+  const { plan_id, user_id } = await searchParams;
 
   if (!plan_id) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">No plan found.</p>
-          <Link href="/onboarding" className="bg-green-500 text-white px-6 py-2 rounded-lg">Start Onboarding</Link>
+          <p className="text-gray-400 mb-4">No plan found.</p>
+          <Link href="/onboarding" className="bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-3 rounded-xl transition-colors">
+            Start Onboarding
+          </Link>
         </div>
       </div>
     );
@@ -51,39 +53,76 @@ export default async function DashboardPage({ searchParams }: Props) {
   }));
 
   const sport = (plan as any)?.sports;
+  const currentWeek = plan?.current_week || 1;
+  const totalSessions = (sessions || []).length;
+  const completedCount = completedIds.size;
+  const completePct = totalSessions > 0 ? Math.round((completedCount / totalSessions) * 100) : 0;
+
+  // Find first incomplete session in current week for "Start Next Session" button
+  const currentWeekData = weeksWithSessions.find((w: any) => w.week_number === currentWeek);
+  const nextSession = currentWeekData?.sessions?.find((s: any) => !completedIds.has(s.id))
+    ?? weeksWithSessions.flatMap((w: any) => w.sessions).find((s: any) => !completedIds.has(s.id));
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-950 text-white">
+      {/* Dark header */}
+      <nav className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <Link href="/" className="text-2xl font-black">Court<span className="text-green-400">IQ</span></Link>
+        <div className="text-right">
+          <div className="text-sm text-gray-400">8-Week {sport?.name || ''} Plan</div>
+          <div className="text-xs text-gray-600">Plan ID: {plan_id.slice(0, 8)}…</div>
+        </div>
+      </nav>
+
       <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-black text-gray-900">Court<span className="text-green-500">IQ</span></h1>
-            <p className="text-gray-500">Your 8-week {sport?.name || ''} training plan</p>
+        {/* Stats bar */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="bg-green-500/10 border border-green-500/20 rounded-2xl p-5 text-center">
+            <div className="text-3xl font-black text-green-400">Week {currentWeek}/8</div>
+            <div className="text-xs text-gray-400 mt-1 uppercase tracking-wide font-semibold">Current Week</div>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold text-green-500">Week {plan?.current_week || 1}</div>
-            <div className="text-sm text-gray-400">of 8</div>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
+            <div className="text-3xl font-black text-white">{completedCount}/{totalSessions}</div>
+            <div className="text-xs text-gray-400 mt-1 uppercase tracking-wide font-semibold">Sessions Done</div>
+          </div>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
+            <div className="text-3xl font-black text-white">{completePct}%</div>
+            <div className="text-xs text-gray-400 mt-1 uppercase tracking-wide font-semibold">Complete</div>
           </div>
         </div>
 
-        <div className="bg-green-500 text-white rounded-2xl p-5 mb-8">
-          <p className="font-semibold text-lg mb-1">Your Progress</p>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 bg-white/20 rounded-full h-2">
+        {/* Progress bar + CTA */}
+        <div className="bg-gray-900 border border-white/10 rounded-2xl p-5 mb-8 flex items-center justify-between gap-6">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-gray-300">Overall Progress</span>
+              <span className="text-sm text-gray-500">{completedCount} of {totalSessions} sessions</span>
+            </div>
+            <div className="w-full bg-white/10 rounded-full h-2.5">
               <div
-                className="bg-white rounded-full h-2 transition-all"
-                style={{ width: `${((plan?.current_week || 1) / 8) * 100}%` }}
+                className="bg-green-500 rounded-full h-2.5 transition-all"
+                style={{ width: `${completePct}%` }}
               />
             </div>
-            <span className="text-sm font-bold">{completedIds.size} sessions done</span>
           </div>
+          {nextSession && (
+            <Link
+              href={`/session/${nextSession.id}?plan_id=${plan_id}&user_id=${user_id || ''}`}
+              className="flex-shrink-0 bg-green-500 hover:bg-green-400 text-white font-bold px-6 py-3 rounded-xl transition-colors whitespace-nowrap"
+            >
+              Start Next Session →
+            </Link>
+          )}
         </div>
 
-        <WeekGrid
-          weeks={weeksWithSessions}
-          currentWeek={plan?.current_week || 1}
-          completedSessionIds={completedIds}
-        />
+        {/* Week Grid on white card */}
+        <div className="bg-white rounded-2xl p-4">
+          <WeekGrid
+            weeks={weeksWithSessions}
+            currentWeek={currentWeek}
+            completedSessionIds={completedIds}
+          />
+        </div>
       </div>
     </main>
   );
